@@ -1,0 +1,18 @@
+name = "bizwiz3/aura"
+version = "0.1.0"
+description = ""
+license = "MIT"
+authors = ["BizWiz3"]
+repository = "https://github.com/BizWiz3/aura"
+private = false
+
+includes = ["LICENSE", "README.md", "src/index.luau", "pesde.toml"]
+
+[target]
+environment = "lune"
+lib = "src/index.luau"
+
+[indices]
+default = "https://github.com/pesde-pkg/index"
+
+[dependencies]
