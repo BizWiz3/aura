@@ -1,5 +1,5 @@
 name = "bizwiz3/aura"
-version = "0.1.1"
+version = "0.1.2"
 description = "The HTTP client for Lune. Aura is a lightweight wrapper around Lune's native net library for handling request. Inspired by Axios, it simplifies data fetching by handling JSON encoding/decoding, URL normalization, and standardized response objects automatically."
 license = "MIT"
 authors = ["BizWiz3"]
