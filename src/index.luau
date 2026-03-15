@@ -1,42 +1,22 @@
+--!optimize 2
+--!native
+
 local net = require("@lune/net")
 local serde = require("@lune/serde")
 local stdio = require("@lune/stdio")
-
+local Types = require("./types")
 -- HTTP Method Enums
-local Methods = {
+local METHODS = {
     POST = "POST",
     GET = "GET",
     PUT = "PUT",
-    UPDATE = "UPDATE",
+    PATCH = "PATCH",
     DELETE = "DELETE"
-}
-
-export type Headers = {
-    ["Content-Type"]: "application/json" | "application/x-www-form-urlencoded" | "text/plain" | string,
-}
-
--- Params Types
-export type AuraRequest = {
-    url: string?,
-    method: string?,
-    body: any?,
-    headers: Headers?,
-    query: { [string]: string }?,
-    options: { [string]: any }?
-}
-
-export type AuraResponse = {
-    ok: boolean,
-    status: number,
-    statusMessage: string,
-    headers: { [string]: string },
-    body: any,
-    time: number
 }
 
 local Aura = {}
 
-function Aura.get(config: AuraRequest): AuraResponse
+function Aura.get(config: Types.AuraRequest): Types.AuraResponse
     assert(config.url, "Url not found")
     assert(typeof(config.url) == "string", "Url must be string")
     
@@ -48,15 +28,15 @@ function Aura.get(config: AuraRequest): AuraResponse
 
     local finalConfig = { 
         url = string.gsub(config.url, "://localhost", "://127.0.0.1"),
-        method = config.method or Methods.GET,
+        method = config.method or METHODS.GET,
         headers = config.headers or { ["Content-Type"] = "application/json" },
         body = if config.body and typeof(config.body) == "table" then serde.encode("json", config.body) else config.body or "",
         query = config.query,
         options = config.options
-    } :: AuraRequest
+    } :: Types.AuraRequest
 
     local startTime = os.clock()
-    local response = net.request(finalConfig)
+    local response = net.request(finalConfig :: net.FetchParams)
     local endTime = os.clock()
     
     local duration = endTime - startTime
@@ -65,13 +45,13 @@ function Aura.get(config: AuraRequest): AuraResponse
         return serde.decode("json", response.body)
     end)
 
-    local finalResponse: AuraResponse = {
+    local finalResponse: Types.AuraResponse = {
         ok = response.ok,
         status = response.statusCode,
         statusMessage = response.statusMessage,
-        headers = response.headers,
+        headers = response.headers :: { [string]: string },
         body = if success then decodedBody else response.body,
-        time = duration
+        responseTime = duration
     }
 
     if not finalResponse.ok then
@@ -87,7 +67,7 @@ function Aura.get(config: AuraRequest): AuraResponse
             " URL    : %s\n" ..
             " Time   : %.4f seconds\n" ..
             "\n" ..
-            "%s",
+            "%s" :: any,
             color,
             finalResponse.status, 
             finalResponse.statusMessage or "Unknown", 
@@ -97,29 +77,29 @@ function Aura.get(config: AuraRequest): AuraResponse
             reset
         )
 
-        warn(beautyError)
+        print(beautyError)
     end
 
     return finalResponse
 end
 
-function Aura.post(config: AuraRequest): AuraResponse
-    config.method = Methods.POST
+function Aura.post(config: Types.AuraRequest): Types.AuraResponse
+    config.method = METHODS.POST
     return Aura.get(config)
 end
 
-function Aura.put(config: AuraRequest): AuraResponse
-    config.method = Methods.PUT
+function Aura.put(config: Types.AuraRequest): Types.AuraResponse
+    config.method = METHODS.PUT
     return Aura.get(config)
 end
 
-function Aura.update(config: AuraRequest): AuraResponse
-    config.method = Methods.UPDATE
+function Aura.patch(config: Types.AuraRequest): Types.AuraResponse
+    config.method = METHODS.PATCH
     return Aura.get(config)
 end
 
-function Aura.delete(config: AuraRequest): AuraResponse
-    config.method = Methods.DELETE
+function Aura.delete(config: Types.AuraRequest): Types.AuraResponse
+    config.method = METHODS.DELETE
     return Aura.get(config)
 end
 
